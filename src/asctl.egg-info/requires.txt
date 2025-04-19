@@ -1,0 +1,4 @@
+build>=1.2.2.post1
+click>=8.1.7
+setuptools>=75.6.0
+BeautifulSoup4

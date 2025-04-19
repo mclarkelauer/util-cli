@@ -1,0 +1,19 @@
+[project]
+name = "asctl"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "build>=1.2.2.post1",
+    "click>=8.1.7",
+    "setuptools>=75.6.0",
+    "BeautifulSoup4"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+asctl = "cli:cli"

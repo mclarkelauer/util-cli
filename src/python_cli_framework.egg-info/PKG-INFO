@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: python-cli-framework
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: build>=1.2.2.post1
+Requires-Dist: click>=8.1.7
+Requires-Dist: setuptools>=75.6.0
