@@ -44,12 +44,12 @@ class Scraper:
         self.completed = {}
         self.stay_in_domain = stay_in_domain
 
-        self.work_queue.append(self.start_url)
+        self.work_queue.append((self.start_url, 0))
 
     def pop_next_url(self):
-        url = self.work_queue.popleft()
+        (url,depth) = self.work_queue.popleft()
         logger.debug(f"deque - {url}")
-        return url
+        return (url, depth)
 
     def check_if_done(self, url):
         if url in self.completed:
@@ -57,15 +57,17 @@ class Scraper:
             return True
         return False
 
-    def push_next_url(self, url):
+    def push_next_url(self, url, depth):
         if url not in self.work_queue and url not in self.completed:
-            self.work_queue.append(url)
+            self.work_queue.append((url,depth))
 
     def run(self):
         while len(self.work_queue) > 0:
-            url = self.pop_next_url()
+            (url,depth) = self.pop_next_url()
             if self.check_if_done(url):
                 logger.debug(f"Skipping url, already compelted: {url}")
+            elif self.depth > 0 and self.depth <= depth:
+                logger.debug(f"Max Depth Reached skipping {url}")
             else:
                 try: 
                     links = fetch_links(url)
@@ -78,7 +80,7 @@ class Scraper:
 
                 for link in links:
                     if link != '#' and "arlingtonsoccerclub" in link:
-                        self.push_next_url(link)
+                        self.push_next_url(link, depth+1)
         
 @click.command()
 @click.option('-u', '--url', 'url')
@@ -89,5 +91,4 @@ def scrape(ctx, url, depth):
     click.echo(f"Fetching {url} and searching for deadlinks")
     scraper = Scraper(url=url, depth=depth)
     scraper.run()
-
 
