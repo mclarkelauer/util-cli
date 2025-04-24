@@ -1,39 +1,62 @@
-from   configparser import ConfigParser, UNNAMED_SECTION
+from util.logging import logger
+import toml
 import json
 
-config_file="~/.utilrc"
+from pathlib import Path
+
+
+from pathlib import Path
+home = Path.home()
+config_file= f"{home}/.utilrc"
 
 # init logging
-logger = logging.getLogger(__name__)
-
-def read_config(ctx, filename=config_file, ):
-    cfg = ConfigParser()
-    cfg.read(filename)
-    try:
-        options = dict(cfg['options'])
-    except KeyError:
-        options = {}
-    ctx.default_map = options
 
 class Config():
+    global_config = None
+
+    @staticmethod
+    def init(config_file):
+        Config.global_config = Config(config_file)
+    
+    @staticmethod
+    def get_global_config():
+        return Config.global_config
+
+    @staticmethod
+    def get_config_from_file(config_file):
+        Config.init(config_file)
+        return Config.get_global_config()
+
+    @staticmethod
+    def click_callback(ctx, param, filename):
+        logger.debug(f"Config file loaded from{filename}")
+        ctx.obj=Config.get_config_from_file(filename)
+
     def __init__(self, config_file):
         self.filename = config_file
-        self.config = ConfigParser()
-        self.config.read(config_file)
-        self.default_section = UNNANED_SECTION
+        with open(self.filename, 'r') as f:
+            self.config = toml.load(f)
 
-    def get_section(self, section=None):
+        self.default_section = "GLOBAL"
+
+    def __str__(self):
+        return toml.dumps(self.config)
+
+    def get_config(self, section=None, config=None):
+        if section is None:
+            section = self.default_section
         if section not in self.config:
-            logger.DEBUG(f"Section {section} doesn't exist")            
-            return None
-        return self.config[section]
+            raise Exception(f"Section {section} not in config")
+        if config not in self.config[section]:
+            raise Exception(f"Section {section} doesn't contain {config}")
+        return self.config[section][config]
 
-    def get_config(self, section=None, config):
-        config_section = self.get_section(section)
-        pass
+    def set_config(self, section=None, config=None, value=None):
+        if section is None:
+            section = self.default_section
+        elif section not in self.config:
+            self.config[section] = dict()
+        
+        logger.debug(f"setting config: {section}:{config} to {value}")
+        self.config[section][config] = value
 
-    def set_section(self, section):
-        pass
-
-    def set_config(self, section, config):
-        pass

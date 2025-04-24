@@ -3,7 +3,7 @@ name = "util"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "build>=1.2.2.post1",
     "click>=8.1.7",
@@ -13,6 +13,8 @@ dependencies = [
     "google-genai>=1.11.0",
     "click-config-file>=0.6.0",
     "configparser>=7.2.0",
+    "ipython>=9.1.0",
+    "toml>=0.10.2",
 ]
 
 [build-system]
