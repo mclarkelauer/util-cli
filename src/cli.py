@@ -9,6 +9,7 @@ from util.config import Config
 # command
 from commands.scrape import scrape
 from commands.config import config
+from commands.gemini import gemini
 
 from util.config import config_file 
 
@@ -30,5 +31,6 @@ def cli(ctx, log_level):
     ctx.obj.set_config(config='log_level',value=log_level)
     log.init_logging(log_level)
 
+cli.add_command(gemini)
 cli.add_command(config)
 cli.add_command(scrape)

@@ -37,6 +37,7 @@ class Config():
         with open(self.filename, 'r') as f:
             self.config = toml.load(f)
 
+        print(self.config)
         self.default_section = "GLOBAL"
 
     def __str__(self):
