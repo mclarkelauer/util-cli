@@ -34,11 +34,16 @@ class Config():
 
     def __init__(self, config_file):
         self.filename = config_file
-        with open(self.filename, 'r') as f:
-            self.config = toml.load(f)
+        try: 
+            with open(self.filename, 'r') as f:
+                self.config = toml.load(f)
+        except FileNotFoundError as e:
+          self.config = {}
 
         print(self.config)
         self.default_section = "GLOBAL"
+        if self.default_section not in self.config:
+            self.config[self.default_section] = {}
 
     def __str__(self):
         return toml.dumps(self.config)

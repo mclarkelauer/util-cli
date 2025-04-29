@@ -16,6 +16,7 @@ dependencies = [
     "ipython>=9.1.0",
     "toml>=0.10.2",
     "rich>=14.0.0",
+    "clickloader>=0.2.0",
 ]
 
 [build-system]
