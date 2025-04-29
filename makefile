@@ -2,7 +2,7 @@ all: install
 
 install:
 	@uv build 
-	@pipx install dist/util-*.whl
+	@pipx install --force dist/util-*.whl
 
 setup:
 	@/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -15,3 +15,4 @@ clean:
 
 uninstall: clean
 	@pipx uninstall util
+	@if [ -d "dist" ]; then rm -rf dist; fi
