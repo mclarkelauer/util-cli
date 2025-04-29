@@ -4,6 +4,7 @@ from util.logging import logger
 
 import IPython
 
+
 @click.group()
 @click.pass_context
 def config(ctx):
@@ -17,7 +18,8 @@ def show(ctx):
     click.echo("--------------------------")
     click.echo(ctx.obj)
     click.echo("--------------------------")
- 
+
+
 @config.command()
 @click.pass_context
 def create(ctx):
@@ -28,5 +30,3 @@ def create(ctx):
 @click.pass_context
 def set(ctx):
     click.echo("set")
-
-

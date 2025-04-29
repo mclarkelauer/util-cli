@@ -23,10 +23,10 @@ def fetch_links(url):
     try:
         response = requests.get(url)
         response.raise_for_status()  # Raise an exception for bad status codes
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
         links = []
-        for link in soup.find_all('a', href=True):
-            links.append(link['href'])
+        for link in soup.find_all("a", href=True):
+            links.append(link["href"])
         return links
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching URL: {e}")
@@ -47,7 +47,7 @@ class Scraper:
         self.work_queue.append((self.start_url, 0))
 
     def pop_next_url(self):
-        (url,depth) = self.work_queue.popleft()
+        (url, depth) = self.work_queue.popleft()
         logger.debug(f"deque - {url}")
         return (url, depth)
 
@@ -59,17 +59,17 @@ class Scraper:
 
     def push_next_url(self, url, depth):
         if url not in self.work_queue and url not in self.completed:
-            self.work_queue.append((url,depth))
+            self.work_queue.append((url, depth))
 
     def run(self):
         while len(self.work_queue) > 0:
-            (url,depth) = self.pop_next_url()
+            (url, depth) = self.pop_next_url()
             if self.check_if_done(url):
                 logger.debug(f"Skipping url, already compelted: {url}")
             elif self.depth > 0 and self.depth <= depth:
                 logger.debug(f"Max Depth Reached skipping {url}")
             else:
-                try: 
+                try:
                     links = fetch_links(url)
                 except Exception as e:
                     logger.error(f"There was an error fetching {url} : {e}")
@@ -77,18 +77,23 @@ class Scraper:
                     continue
                 self.completed[url] = True
 
-
                 for link in links:
-                    if link != '#' and "arlingtonsoccerclub" in link:
-                        self.push_next_url(link, depth+1)
-        
+                    if link != "#" and "arlingtonsoccerclub" in link:
+                        self.push_next_url(link, depth + 1)
+
+
 @click.command()
-@click.option('-u', '--url', 'url')
-@click.option('-d', '--depth', help='Depth of Crawl, 0 for unbounded search', default=0, show_default=True)  
+@click.option("-u", "--url", "url")
+@click.option(
+    "-d",
+    "--depth",
+    help="Depth of Crawl, 0 for unbounded search",
+    default=0,
+    show_default=True,
+)
 @click.pass_context
 def scrape(ctx, url, depth):
     logger.debug(f"Options: {url}, {depth}")
     click.echo(f"Fetching {url} and searching for deadlinks")
     scraper = Scraper(url=url, depth=depth)
     scraper.run()
-

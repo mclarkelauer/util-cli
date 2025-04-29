@@ -6,7 +6,8 @@ from rich.console import Console
 
 from util.logging import logger
 
-class Gemini():
+
+class Gemini:
 
     Client = None
 
@@ -16,18 +17,15 @@ class Gemini():
         self.client = genai.Client(api_key=self.apikey)
 
     def request(self, text):
-        response = client.models.generate_content(
-            models=self.version,
-            contents=[text]
-        )
+        response = client.models.generate_content(models=self.version, contents=[text])
         click.echo(response.text)
 
     def chat(self):
         chat = self.client.chats.create(model="gemini-2.0-flash")
         console = Console()
-        
-        while True: 
-            value = click.prompt('Prompt:', type=str)
+
+        while True:
+            value = click.prompt("Prompt:", type=str)
             if value is "q" or value is "quit":
                 break
             response = chat.send_message(value)
@@ -44,13 +42,13 @@ class Gemini():
             raise Exception("Client never initialized")
         return Gemini.Client
 
+
 @click.command
-@click.option("--apikey","apikey", default=None) 
+@click.option("--apikey", "apikey", default=None)
 @click.pass_context
 def gemini(ctx, apikey):
     if not apikey:
-        apikey = ctx.obj.get_config("GEMINI","apikey")
+        apikey = ctx.obj.get_config("GEMINI", "apikey")
     Gemini.create_client(apikey)
     client = Gemini.get_client()
     client.chat()
-

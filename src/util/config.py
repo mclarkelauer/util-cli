@@ -6,18 +6,20 @@ from pathlib import Path
 
 
 from pathlib import Path
+
 home = Path.home()
-config_file= f"{home}/.utilrc"
+config_file = f"{home}/.utilrc"
 
 # init logging
 
-class Config():
+
+class Config:
     global_config = None
 
     @staticmethod
     def init(config_file):
         Config.global_config = Config(config_file)
-    
+
     @staticmethod
     def get_global_config():
         return Config.global_config
@@ -30,15 +32,15 @@ class Config():
     @staticmethod
     def click_callback(ctx, param, filename):
         logger.debug(f"Config file loaded from{filename}")
-        ctx.obj=Config.get_config_from_file(filename)
+        ctx.obj = Config.get_config_from_file(filename)
 
     def __init__(self, config_file):
         self.filename = config_file
-        try: 
-            with open(self.filename, 'r') as f:
+        try:
+            with open(self.filename, "r") as f:
                 self.config = toml.load(f)
         except FileNotFoundError as e:
-          self.config = {}
+            self.config = {}
 
         print(self.config)
         self.default_section = "GLOBAL"
@@ -62,7 +64,6 @@ class Config():
             section = self.default_section
         elif section not in self.config:
             self.config[section] = dict()
-        
+
         logger.debug(f"setting config: {section}:{config} to {value}")
         self.config[section][config] = value
-
