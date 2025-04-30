@@ -7,9 +7,6 @@ from collections import namedtuple
 home = Path.home()
 config_file = f"{home}/.utilrc"
 
-# init logging
-configSection = namedtuple("name", "config")
-
 
 class Config:
     global_config = None
@@ -65,3 +62,15 @@ class Config:
 
         logger.debug(f"setting config: {section}:{config} to {value}")
         self.config[section][config] = value
+
+    def set_section(self, section, config={}, overwrite=False):
+        if section not in config:
+            self.config[section] = {}
+        for key in config.keys:
+            if not overwrite and key in self.config[section]:
+                logging.debug(
+                    f"Key {key} exists in section {section} and overwrite is false, skipping"
+                )
+                continue
+            else:
+                self.config[section][key] = config[key]
