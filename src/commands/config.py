@@ -1,8 +1,5 @@
 import click
-import logging
 from util.logging import logger
-
-import IPython
 
 
 @click.group()
@@ -14,7 +11,7 @@ def config(ctx):
 @config.command()
 @click.pass_context
 def show(ctx):
-    click.echo(f"Util Cli Config Structure")
+    click.echo("Util Cli Config Structure")
     click.echo("--------------------------")
     click.echo(ctx.obj)
     click.echo("--------------------------")

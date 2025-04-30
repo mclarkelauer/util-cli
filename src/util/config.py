@@ -1,16 +1,14 @@
 from util.logging import logger
 import toml
-import json
 
 from pathlib import Path
-
-
-from pathlib import Path
+from collections import namedtuple
 
 home = Path.home()
 config_file = f"{home}/.utilrc"
 
 # init logging
+configSection = namedtuple("name", "config")
 
 
 class Config:
@@ -39,7 +37,7 @@ class Config:
         try:
             with open(self.filename, "r") as f:
                 self.config = toml.load(f)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self.config = {}
 
         print(self.config)

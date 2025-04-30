@@ -4,8 +4,6 @@ from google import genai
 from rich.markdown import Markdown
 from rich.console import Console
 
-from util.logging import logger
-
 
 class Gemini:
 
@@ -26,7 +24,7 @@ class Gemini:
 
         while True:
             value = click.prompt("Prompt:", type=str)
-            if value is "q" or value is "quit":
+            if value == "q" or value == "quit":
                 break
             response = chat.send_message(value)
             md = Markdown(response.text)

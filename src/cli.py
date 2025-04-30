@@ -1,5 +1,4 @@
 import click
-import logging
 
 # utils
 import util.logging as log
