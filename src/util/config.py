@@ -37,7 +37,6 @@ class Config:
         except FileNotFoundError:
             self.config = {}
 
-        print(self.config)
         self.default_section = "GLOBAL"
         if self.default_section not in self.config:
             self.config[self.default_section] = {}

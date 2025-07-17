@@ -11,11 +11,7 @@ def config(ctx):
 @config.command()
 @click.pass_context
 def show(ctx):
-    click.echo("Util Cli Config Structure")
-    click.echo("--------------------------")
     click.echo(ctx.obj)
-    click.echo("--------------------------")
-
 
 @config.command()
 @click.pass_context
@@ -27,3 +23,10 @@ def create(ctx):
 @click.pass_context
 def set(ctx):
     click.echo("set")
+
+@config.command()
+@click.pass_context
+def write(ctx):
+    click.echo("write")
+
+

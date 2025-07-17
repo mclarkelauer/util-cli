@@ -17,6 +17,7 @@ dependencies = [
     "toml>=0.10.2",
     "rich>=14.0.0",
     "clickloader>=0.2.0",
+    "pyyaml>=6.0.2",
 ]
 
 [build-system]

@@ -3,6 +3,10 @@
 *.py[cod]
 *$py.class
 
+#vim swp files
+*.swp
+*.swo
+
 # C extensions
 *.so
 

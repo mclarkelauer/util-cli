@@ -9,6 +9,7 @@ from util.config import Config
 from commands.scrape import scrape
 from commands.config import config
 from commands.gemini import gemini
+from commands.tasks import tasks 
 
 from util.config import config_file
 
@@ -39,7 +40,7 @@ def cli(ctx, log_level):
 cli.add_command(gemini)
 cli.add_command(config)
 cli.add_command(scrape)
-
+cli.add_command(tasks)
 
 path_to_commands = pathlib.Path(__file__, "..", "out_of_repo_commands")
 ccl.register_commands(cli, path_to_commands)
