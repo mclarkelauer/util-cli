@@ -18,6 +18,8 @@ dependencies = [
     "rich>=14.0.0",
     "clickloader>=0.2.0",
     "pyyaml>=6.0.2",
+    "pyobjc>=11.1",
+    "taskw>=2.0",
 ]
 
 [build-system]
