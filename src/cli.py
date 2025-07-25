@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import click
 
 # utils
@@ -12,16 +13,40 @@ from commands.gemini import gemini
 from commands.tasks import tasks 
 
 from util.config import config_file
-
+"""Main CLI module for the util package."""
+import asyncclick as click
 import ccl
-import pathlib
+
+import util.logging as log
+from util.config import Config, CONFIG_FILE
+
+# Import commands from commands directory
+try:
+    from commands.config import config
+except ImportError:
+    config = None
+
+try:
+    from commands.gemini import gemini
+except ImportError:
+    gemini = None
+
+try:
+    from commands.scrape import scrape
+except ImportError:
+    scrape = None
+
+try:
+    from commands.demo import demo
+except ImportError:
+    demo = None
 
 @click.group()
 @click.option(
     "-c",
     "--config",
     type=click.Path(dir_okay=False),
-    default=config_file,
+    default=CONFIG_FILE,
     callback=Config.click_callback,
     is_eager=True,
     expose_value=False,
@@ -30,17 +55,27 @@ import pathlib
 )
 @click.option("--log-level", default="ERROR")
 @click.pass_context
-def cli(ctx, log_level):
+async def cli(ctx, log_level):
+    """Main CLI entry point."""
     ctx.ensure_object(Config)
-    ctx.obj.set_config(config="log_level", value=log_level)
-    log.init_logging(log_level)
+    await ctx.obj.set_config_async(config="log_level", value=log_level)
+    await log.init_logging_async(log_level)
 
 
-cli.add_command(gemini)
-cli.add_command(config)
-cli.add_command(scrape)
-cli.add_command(tasks)
+# Register commands from commands directory using standard click registration
+if config:
+    cli.add_command(config)
+if gemini:
+    cli.add_command(gemini)
+if scrape:
+    cli.add_command(scrape)
+if demo:
+    cli.add_command(demo)
 
-if pathlib.Path('out_of_repo_commands').is_dir():
-    path_to_commands = pathlib.Path(__file__, "..", "out_of_repo_commands")
-    ccl.register_commands(cli, path_to_commands)
+# Register dynamic commands from out_of_repo_commands using ccl
+# Note: There's a compatibility issue between ccl and asyncclick
+# For now, ccl loading is disabled. External commands should be added to src/commands/
+out_of_repo_path = Path(__file__).parent.parent / 'out_of_repo_commands'
+# TODO: Fix ccl + asyncclick compatibility
+# if out_of_repo_path.is_dir():
+#     ccl.register_commands(cli, out_of_repo_path)

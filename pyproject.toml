@@ -20,11 +20,19 @@ dependencies = [
     "pyyaml>=6.0.2",
     "pyobjc>=11.1",
     "taskw>=2.0",
+    "aiofiles>=24.1.0",
+    "httpx>=0.28.1",
+    "asyncclick>=8.1.8",
 ]
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pylint>=3.3.7",
+]
 
 [project.scripts]
 util = "cli:cli"
