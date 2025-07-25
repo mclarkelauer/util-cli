@@ -18,7 +18,7 @@ This is a Python CLI utility built with asyncclick that provides a modular comma
 - **Script Entry**: Configured in `pyproject.toml` as `util = "cli:cli"`
 - **Configuration**: `src/util/config.py` - TOML-based config system reading from `~/.utilrc` with async support
 - **Logging**: `src/util/logging.py` - Centralized logging with configurable levels
-- **Commands**: `src/commands/` - Built-in commands (config, gemini, scrape, demo)
+- **Commands**: `src/commands/` - Built-in commands (config, gemini, claude, scrape, demo, tasks)
 - **External Commands**: `out_of_repo_commands/` - External command directory (ccl integration disabled due to asyncclick compatibility)
 
 ## Key Features
@@ -46,6 +46,36 @@ When adding new commands:
 3. Import and register in `src/cli.py` with try/except for graceful handling
 4. Commands can access config via context: `ctx.obj` (Config instance)
 
+## Task Management Integration
+
+The `tasks` command provides integration between TaskWarrior and macOS Reminders:
+- **TaskWarrior Integration**: Uses `taskw` library for task management
+- **macOS Reminders**: Custom `pyremindkit` module for Reminders.app integration  
+- **Sync Capabilities**: Convert TaskWarrior tasks to Reminders and mark them as complete
+
+## AI Integration Commands
+
+The CLI includes chat commands for multiple AI providers:
+
+### Gemini Integration
+- **Command**: `util gemini` 
+- **Features**: Interactive chat sessions and single prompts
+- **Configuration**: API key stored in `GEMINI` section of config
+- **Library**: Uses `google-genai` library
+
+### Claude Integration  
+- **Command**: `util claude`
+- **Features**: Interactive chat sessions with conversation context and single prompts
+- **Configuration**: API key stored in `CLAUDE` section of config  
+- **Library**: Uses `anthropic` library
+- **Models**: Defaults to `claude-3-5-sonnet-20241022`
+
+Both commands support:
+- Interactive chat mode (default): Maintains conversation context
+- Single prompt mode: `--prompt "your question"`
+- Model selection: `--model model-name`
+- API key options: `--apikey key` or via config
+
 ## Dependencies
 
-Key dependencies: asyncclick, BeautifulSoup4, requests, google-genai, rich, ipython, toml, aiofiles, httpx, clickloader. Development dependencies include pylint. Requires Python >=3.13.
+Key dependencies: asyncclick, BeautifulSoup4, requests, google-genai, anthropic, rich, ipython, toml, aiofiles, httpx, clickloader, taskw, pyyaml, pyobjc. Development dependencies include pylint. Requires Python >=3.13.

@@ -1,47 +1,43 @@
-<<<<<<< HEAD
-import click
-
-# utils
-import util.logging as log
-
-from util.config import Config
-
-# command
-from commands.scrape import scrape
-from commands.config import config
-from commands.gemini import gemini
-from commands.tasks import tasks 
-
-from util.config import config_file
 """Main CLI module for the util package."""
+import asyncio
+from pathlib import Path
+
 import asyncclick as click
-import ccl
 
 import util.logging as log
 from util.config import Config, CONFIG_FILE
 
-# Import commands from commands directory
-try:
-    from commands.config import config
-except ImportError:
-    config = None
+class LazyGroup(click.Group):
+    """A group that lazy-loads commands to improve startup time."""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._command_modules = {
+            'config': 'commands.config',
+            'gemini': 'commands.gemini',
+            'claude': 'commands.claude',
+            'scrape': 'commands.scrape',
+            'demo': 'commands.demo',
+            'tasks': 'commands.tasks',
+        }
+    
+    def get_command(self, ctx, cmd_name):
+        """Lazy load command when first accessed."""
+        if cmd_name in self._command_modules:
+            try:
+                module_name = self._command_modules[cmd_name]
+                module = __import__(module_name, fromlist=[cmd_name])
+                return getattr(module, cmd_name)
+            except (ImportError, AttributeError):
+                return None
+        return super().get_command(ctx, cmd_name)
+    
+    def list_commands(self, ctx):
+        """List all available commands."""
+        return list(self._command_modules.keys())
 
-try:
-    from commands.gemini import gemini
-except ImportError:
-    gemini = None
 
-try:
-    from commands.scrape import scrape
-except ImportError:
-    scrape = None
-
-try:
-    from commands.demo import demo
-except ImportError:
-    demo = None
-
-@click.group()
+@click.group(cls=LazyGroup)
 @click.option(
     "-c",
     "--config",
@@ -61,21 +57,5 @@ async def cli(ctx, log_level):
     await ctx.obj.set_config_async(config="log_level", value=log_level)
     await log.init_logging_async(log_level)
 
-
-# Register commands from commands directory using standard click registration
-if config:
-    cli.add_command(config)
-if gemini:
-    cli.add_command(gemini)
-if scrape:
-    cli.add_command(scrape)
-if demo:
-    cli.add_command(demo)
-
-# Register dynamic commands from out_of_repo_commands using ccl
-# Note: There's a compatibility issue between ccl and asyncclick
-# For now, ccl loading is disabled. External commands should be added to src/commands/
-out_of_repo_path = Path(__file__).parent.parent / 'out_of_repo_commands'
-# TODO: Fix ccl + asyncclick compatibility
-# if out_of_repo_path.is_dir():
-#     ccl.register_commands(cli, out_of_repo_path)
+# Dynamic command loading from out_of_repo_commands disabled for performance
+# Commands should be added to src/commands/ and registered in LazyGroup

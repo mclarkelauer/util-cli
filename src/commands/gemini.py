@@ -1,12 +1,22 @@
 """Gemini AI chat commands."""
 import asyncio
 import asyncclick as click
-from google import genai
-from rich.markdown import Markdown
-from rich.console import Console
 from util.logging import logger
 
-console = Console()
+def _get_console():
+    """Lazy import Console to improve startup time."""
+    from rich.console import Console
+    return Console()
+
+def _get_genai():
+    """Lazy import genai to improve startup time."""
+    from google import genai
+    return genai
+
+def _get_markdown():
+    """Lazy import Markdown to improve startup time.""" 
+    from rich.markdown import Markdown
+    return Markdown
 
 class AsyncGemini:
     """Async wrapper for Gemini AI client."""
@@ -16,6 +26,7 @@ class AsyncGemini:
     def __init__(self, apikey, version="gemini-2.0-flash"):
         self.apikey = apikey
         self.version = version
+        genai = _get_genai()
         self.client = genai.Client(api_key=self.apikey)
 
     async def request(self, text):
@@ -43,6 +54,7 @@ class AsyncGemini:
                 lambda: self.client.chats.create(model=self.version)
             )
             
+            console = _get_console()
             console.print("[bold green]🤖 Gemini Chat Session Started[/bold green]")
             console.print("[dim]Type 'quit' or 'q' to exit[/dim]")
             console.print("-" * 50)
@@ -68,6 +80,7 @@ class AsyncGemini:
                     
                     # Display response with rich markdown formatting
                     console.print("[bold blue]Gemini:[/bold blue]")
+                    Markdown = _get_markdown()
                     md = Markdown(response.text)
                     console.print(md)
                     console.print("-" * 50)
@@ -104,6 +117,8 @@ class AsyncGemini:
 async def gemini(ctx, apikey, model, prompt):
     """Chat with Gemini AI or send a single prompt."""
     
+    console = _get_console()
+    
     # Get API key from parameter or config
     if not apikey:
         try:
@@ -129,6 +144,7 @@ async def gemini(ctx, apikey, model, prompt):
             console.print(f"[bold cyan]🤖 Asking Gemini:[/bold cyan] {prompt}")
             response = await client.request(prompt)
             console.print("[bold blue]Gemini:[/bold blue]")
+            Markdown = _get_markdown()
             md = Markdown(response)
             console.print(md)
         else:

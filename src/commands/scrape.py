@@ -3,22 +3,36 @@ import asyncio
 from collections import deque
 from urllib.parse import urljoin, urlparse
 import asyncclick as click
-import httpx
-from bs4 import BeautifulSoup
-from rich.console import Console
-from rich.progress import Progress, TaskID
-from rich.table import Table
 from util.logging import logger
 
-console = Console()
+def _get_console():
+    """Lazy import Console to improve startup time."""
+    from rich.console import Console
+    return Console()
 
-async def fetch_links(url: str, client: httpx.AsyncClient) -> list[str]:
+def _get_httpx():
+    """Lazy import httpx to improve startup time."""
+    import httpx
+    return httpx
+
+def _get_bs4():
+    """Lazy import BeautifulSoup to improve startup time."""
+    from bs4 import BeautifulSoup
+    return BeautifulSoup
+
+def _get_rich_components():
+    """Lazy import rich components to improve startup time."""
+    from rich.progress import Progress, TaskID
+    from rich.table import Table
+    return Progress, TaskID, Table
+
+async def fetch_links(url: str, client) -> list[str]:
     """
     Fetches all the links (href attributes of <a> tags) from a given webpage URL asynchronously.
 
     Args:
         url (str): The URL of the webpage to scrape.
-        client (httpx.AsyncClient): The HTTP client to use.
+        client: The HTTP client to use.
 
     Returns:
         list: A list of strings, where each string is a link found on the page.
@@ -28,6 +42,7 @@ async def fetch_links(url: str, client: httpx.AsyncClient) -> list[str]:
         response = await client.get(url, timeout=30.0)
         response.raise_for_status()
         
+        BeautifulSoup = _get_bs4()
         soup = BeautifulSoup(response.content, "html.parser")
         links = []
         
@@ -76,7 +91,7 @@ class AsyncScraper:
         parsed_url = urlparse(url)
         return parsed_url.netloc == self.start_domain or parsed_url.netloc == ""
 
-    async def process_url(self, client: httpx.AsyncClient, url: str, depth: int) -> tuple[str, bool, list[str]]:
+    async def process_url(self, client, url: str, depth: int) -> tuple[str, bool, list[str]]:
         """Process a single URL and return its links."""
         if url in self.completed:
             logger.debug(f"Already processed: {url}")
@@ -106,11 +121,15 @@ class AsyncScraper:
 
     async def run(self):
         """Run the async scraper."""
+        console = _get_console()
         console.print(f"[bold green]🕷️  Starting async scrape of {self.start_url}[/bold green]")
         console.print(f"Max depth: {self.max_depth if self.max_depth > 0 else 'unlimited'}")
         console.print(f"Stay in domain: {self.stay_in_domain}")
         console.print(f"Max concurrent requests: {self.max_concurrent}")
         console.print("-" * 60)
+        
+        httpx = _get_httpx()
+        Progress, TaskID, Table = _get_rich_components()
         
         timeout = httpx.Timeout(30.0, connect=10.0)
         
