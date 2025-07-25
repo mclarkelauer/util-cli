@@ -1,8 +1,11 @@
+"""Logging configuration module."""
+import asyncio
 import logging
 import click
 
 
 def init_logging(log_level="DEBUG"):
+    """Initialize logging with the specified level."""
     level = None
     log_level = log_level.upper()
     match log_level:
@@ -24,6 +27,13 @@ def init_logging(log_level="DEBUG"):
         datefmt="%Y-%m-%d:%H:%M:%S",
         level=level,
     )
+
+async def init_logging_async(log_level="DEBUG"):
+    """Initialize logging with the specified level asynchronously."""
+    # For logging, async doesn't add much value, but we provide the interface
+    # In a real async scenario, this might initialize async log handlers
+    await asyncio.sleep(0)  # Yield control to event loop
+    init_logging(log_level)
 
 
 logger = logging.getLogger(__name__)

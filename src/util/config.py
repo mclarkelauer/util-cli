@@ -1,44 +1,81 @@
-from util.logging import logger
+"""Configuration management module."""
+import asyncio
+import logging
+from pathlib import Path
+
+import aiofiles
 import toml
 
-from pathlib import Path
-from collections import namedtuple
+from util.logging import logger
 
 home = Path.home()
-config_file = f"{home}/.utilrc"
+CONFIG_FILE = f"{home}/.utilrc"
+
+# Export the config_file for backwards compatibility  
+# pylint: disable=invalid-name
+config_file = CONFIG_FILE
 
 
 class Config:
+    """Configuration manager for the util package."""
     global_config = None
 
     @staticmethod
-    def init(config_file):
-        Config.global_config = Config(config_file)
+    def init(config_file_path):
+        """Initialize global config with the given file path."""
+        Config.global_config = Config(config_file_path)
 
     @staticmethod
     def get_global_config():
+        """Get the global configuration instance."""
         return Config.global_config
 
     @staticmethod
-    def get_config_from_file(config_file):
-        Config.init(config_file)
+    def get_config_from_file(config_file_path):
+        """Get configuration from the specified file."""
+        Config.init(config_file_path)
         return Config.get_global_config()
+        
+    @staticmethod
+    async def get_config_from_file_async(config_file_path):
+        """Get configuration from the specified file asynchronously."""
+        config = Config(config_file_path)
+        await config.load_config_async()
+        Config.global_config = config
+        return config
 
     @staticmethod
-    def click_callback(ctx, param, filename):
-        logger.debug(f"Config file loaded from{filename}")
-        ctx.obj = Config.get_config_from_file(filename)
-
-    def __init__(self, config_file):
-        self.filename = config_file
+    def click_callback(ctx, _param, filename):
+        """Click callback for loading configuration."""
+        logger.debug("Config file loaded from %s", filename)
+        config = Config(filename)
+        # Load config synchronously for Click compatibility
         try:
-            with open(self.filename, "r") as f:
-                self.config = toml.load(f)
+            with open(filename, "r", encoding="utf-8") as f:
+                config.config = toml.load(f)
+        except FileNotFoundError:
+            config.config = {}
+        if config.default_section not in config.config:
+            config.config[config.default_section] = {}
+        ctx.obj = config
+
+    def __init__(self, config_file_path):
+        """Initialize configuration from file."""
+        self.filename = config_file_path
+        self.config = {}
+        self.default_section = "GLOBAL"
+        # Initialize synchronously for now, async init will be called separately
+        
+    async def load_config_async(self):
+        """Load configuration from file asynchronously."""
+        try:
+            async with aiofiles.open(self.filename, "r", encoding="utf-8") as f:
+                content = await f.read()
+                self.config = toml.loads(content)
         except FileNotFoundError:
             self.config = {}
 
         print(self.config)
-        self.default_section = "GLOBAL"
         if self.default_section not in self.config:
             self.config[self.default_section] = {}
 
@@ -46,31 +83,67 @@ class Config:
         return toml.dumps(self.config)
 
     def get_config(self, section=None, config=None):
+        """Get configuration value from section."""
         if section is None:
             section = self.default_section
         if section not in self.config:
-            raise Exception(f"Section {section} not in config")
+            raise KeyError(f"Section {section} not in config")
         if config not in self.config[section]:
-            raise Exception(f"Section {section} doesn't contain {config}")
+            raise KeyError(f"Section {section} doesn't contain {config}")
         return self.config[section][config]
 
     def set_config(self, section=None, config=None, value=None):
+        """Set configuration value in section."""
         if section is None:
             section = self.default_section
         elif section not in self.config:
-            self.config[section] = dict()
+            self.config[section] = {}
 
-        logger.debug(f"setting config: {section}:{config} to {value}")
+        logger.debug("setting config: %s:%s to %s", section, config, value)
+        self.config[section][config] = value
+        
+    async def set_config_async(self, section=None, config=None, value=None):
+        """Set configuration value in section asynchronously."""
+        if section is None:
+            section = self.default_section
+        elif section not in self.config:
+            self.config[section] = {}
+
+        logger.debug("setting config: %s:%s to %s", section, config, value)
         self.config[section][config] = value
 
-    def set_section(self, section, config={}, overwrite=False):
-        if section not in config:
+    def set_section(self, section, config=None, overwrite=False):
+        """Set entire configuration section."""
+        if config is None:
+            config = {}
+        if section not in self.config:
             self.config[section] = {}
-        for key in config.keys:
+        for key in config.keys():
             if not overwrite and key in self.config[section]:
                 logging.debug(
-                    f"Key {key} exists in section {section} and overwrite is false, skipping"
+                    "Key %s exists in section %s and overwrite is false, skipping",
+                    key, section
                 )
                 continue
-            else:
-                self.config[section][key] = config[key]
+            self.config[section][key] = config[key]
+
+    def get_gemini_apikey(self):
+        """Get the Gemini API key from the GEMINI section"""
+        try:
+            return self.get_config(section="GEMINI", config="apikey")
+        except KeyError:
+            return None
+
+    def set_gemini_apikey(self, apikey):
+        """Set the Gemini API key in the GEMINI section"""
+        self.set_config(section="GEMINI", config="apikey", value=apikey)
+
+    def save_config(self):
+        """Save the current configuration to file"""
+        with open(self.filename, "w", encoding="utf-8") as f:
+            toml.dump(self.config, f)
+            
+    async def save_config_async(self):
+        """Save the current configuration to file asynchronously."""
+        async with aiofiles.open(self.filename, "w", encoding="utf-8") as f:
+            await f.write(toml.dumps(self.config))
