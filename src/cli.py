@@ -16,7 +16,6 @@ from util.config import config_file
 import ccl
 import pathlib
 
-
 @click.group()
 @click.option(
     "-c",
@@ -42,5 +41,6 @@ cli.add_command(config)
 cli.add_command(scrape)
 cli.add_command(tasks)
 
-path_to_commands = pathlib.Path(__file__, "..", "out_of_repo_commands")
-ccl.register_commands(cli, path_to_commands)
+if pathlib.Path('out_of_repo_commands').is_dir():
+    path_to_commands = pathlib.Path(__file__, "..", "out_of_repo_commands")
+    ccl.register_commands(cli, path_to_commands)
